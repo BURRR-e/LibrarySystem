@@ -1,19 +1,18 @@
 package com.librarysystem;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Shelf {
     private String shelfId;
     private String category;
     private int capacity;
-    private List<Book> books;
+    private Book[] books;
+    private int bookCount;
 
     public Shelf(String shelfId, String category, int capacity) {
         this.shelfId = shelfId;
         this.category = category;
         this.capacity = capacity;
-        this.books = new ArrayList<>();
+        this.books = new Book[capacity];
+        this.bookCount = 0;
     }
 
     public String getShelfId() {
@@ -29,45 +28,61 @@ public class Shelf {
     }
 
     public int getBookCount() {
-        return books.size();
+        return bookCount;
     }
 
-    public List<Book> getBooks() {
+    public Book[] getBooks() {
         return books;
     }
 
     public boolean isFull() {
-        return books.size() >= capacity;
+        return bookCount >= capacity;
     }
 
     public boolean addBook(Book book) {
         if (isFull()) {
             return false;
         }
-        books.add(book);
+        books[bookCount] = book;
+        bookCount++;
         return true;
     }
 
     public Book removeBookByIsbn(String isbn) {
-        for (int i = 0; i < books.size(); i++) {
-            if (books.get(i).getIsbn().equalsIgnoreCase(isbn)) {
-                return books.remove(i);
+        for (int i = 0; i < bookCount; i++) {
+            if (books[i].getIsbn().equalsIgnoreCase(isbn)) {
+                Book removed = books[i];
+                // Shift elements to the left to maintain order
+                for (int j = i; j < bookCount - 1; j++) {
+                    books[j] = books[j + 1];
+                }
+                books[bookCount - 1] = null;
+                bookCount--;
+                return removed;
             }
         }
         return null;
     }
 
     public Book removeBookByTitle(String title) {
-        for (int i = 0; i < books.size(); i++) {
-            if (books.get(i).getTitle().equalsIgnoreCase(title)) {
-                return books.remove(i);
+        for (int i = 0; i < bookCount; i++) {
+            if (books[i].getTitle().equalsIgnoreCase(title)) {
+                Book removed = books[i];
+                // Shift elements to the left to maintain order
+                for (int j = i; j < bookCount - 1; j++) {
+                    books[j] = books[j + 1];
+                }
+                books[bookCount - 1] = null;
+                bookCount--;
+                return removed;
             }
         }
         return null;
     }
 
     public Book findBook(String query) {
-        for (Book book : books) {
+        for (int i = 0; i < bookCount; i++) {
+            Book book = books[i];
             if (book.getTitle().equalsIgnoreCase(query) || book.getIsbn().equalsIgnoreCase(query)) {
                 return book;
             }
@@ -77,6 +92,6 @@ public class Shelf {
 
     @Override
     public String toString() {
-        return shelfId + " [Category: " + category + ", Capacity: " + books.size() + "/" + capacity + "]";
+        return shelfId + " [Category: " + category + ", Capacity: " + bookCount + "/" + capacity + "]";
     }
 }

@@ -1,31 +1,38 @@
 package com.librarysystem;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ShelvingSystem {
-    private List<Shelf> shelves;
+    private Shelf[] shelves;
+    private int shelfCount;
 
     public ShelvingSystem() {
-        this.shelves = new ArrayList<>();
+        this.shelves = new Shelf[50];
+        this.shelfCount = 0;
     }
 
     public boolean addShelf(Shelf shelf) {
         if (findShelfById(shelf.getShelfId()) != null) {
             return false;
         }
-        shelves.add(shelf);
+        if (shelfCount >= shelves.length) {
+            Shelf[] temp = new Shelf[shelves.length * 2];
+            System.arraycopy(shelves, 0, temp, 0, shelves.length);
+            shelves = temp;
+        }
+        shelves[shelfCount] = shelf;
+        shelfCount++;
         return true;
     }
 
-    public List<Shelf> getShelves() {
-        return shelves;
+    public Shelf[] getShelves() {
+        Shelf[] activeShelves = new Shelf[shelfCount];
+        System.arraycopy(shelves, 0, activeShelves, 0, shelfCount);
+        return activeShelves;
     }
 
     public Shelf findShelfById(String shelfId) {
-        for (Shelf shelf : shelves) {
-            if (shelf.getShelfId().equalsIgnoreCase(shelfId)) {
-                return shelf;
+        for (int i = 0; i < shelfCount; i++) {
+            if (shelves[i].getShelfId().equalsIgnoreCase(shelfId)) {
+                return shelves[i];
             }
         }
         return null;
@@ -73,17 +80,28 @@ public class ShelvingSystem {
         return true;
     }
 
-    public List<SearchResult> searchBook(String query) {
-        List<SearchResult> results = new ArrayList<>();
-        for (Shelf shelf : shelves) {
-            for (Book book : shelf.getBooks()) {
-                if (book.getTitle().toLowerCase().contains(query.toLowerCase()) || 
+    public SearchResult[] searchBook(String query) {
+        SearchResult[] tempResults = new SearchResult[500];
+        int resultCount = 0;
+
+        for (int i = 0; i < shelfCount; i++) {
+            Shelf shelf = shelves[i];
+            Book[] shelfBooks = shelf.getBooks();
+            for (int j = 0; j < shelf.getBookCount(); j++) {
+                Book book = shelfBooks[j];
+                if (book.getTitle().toLowerCase().contains(query.toLowerCase()) ||
                     book.getAuthor().toLowerCase().contains(query.toLowerCase()) ||
                     book.getIsbn().equalsIgnoreCase(query)) {
-                    results.add(new SearchResult(shelf, book));
+                    if (resultCount < tempResults.length) {
+                        tempResults[resultCount] = new SearchResult(shelf, book);
+                        resultCount++;
+                    }
                 }
             }
         }
+
+        SearchResult[] results = new SearchResult[resultCount];
+        System.arraycopy(tempResults, 0, results, 0, resultCount);
         return results;
     }
 

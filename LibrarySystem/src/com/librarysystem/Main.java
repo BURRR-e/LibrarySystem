@@ -1,6 +1,5 @@
 package com.librarysystem;
 
-import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -8,7 +7,6 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-
         initializeSampleData();
 
         System.out.println("\n");
@@ -20,8 +18,7 @@ public class Main {
         boolean running = true;
         while (running) {
             printMenu();
-            System.out.print("Enter your choice (1-7): ");
-            String choice = scanner.nextLine().trim();
+            String choice = prompt("Enter your choice (1-7): ");
 
             switch (choice) {
                 case "1":
@@ -59,6 +56,12 @@ public class Main {
         }
     }
 
+    private static String prompt(String message) {
+        System.out.println(message);
+        System.out.flush();
+        return scanner.nextLine().trim();
+    }
+
     private static void printMenu() {
         System.out.println("------------------------------------------------------------------------");
         System.out.println("                               MAIN MENU                                ");
@@ -75,8 +78,7 @@ public class Main {
 
     private static void pressEnterToContinue() {
         System.out.println("\n------------------------------------------------------------------------");
-        System.out.print("Press ENTER to return to the Main Menu...");
-        scanner.nextLine();
+        prompt("Press ENTER to return to the Main Menu...");
         System.out.println("\n\n");
     }
 
@@ -173,8 +175,8 @@ public class Main {
     }
 
     private static void displayShelvesWithTitlesAndDescriptions() {
-        List<Shelf> shelves = system.getShelves();
-        if (shelves.isEmpty()) {
+        Shelf[] shelves = system.getShelves();
+        if (shelves.length == 0) {
             System.out.println("\n[Info] No shelves currently exist in the system.");
             return;
         }
@@ -186,12 +188,13 @@ public class Main {
             System.out.println("\nShelf: " + shelf.getShelfId() + " (" + shelf.getCategory() + ")");
             System.out.println("Capacity: " + shelf.getBookCount() + "/" + shelf.getCapacity());
             System.out.println("------------------------------------------------------------------------");
-            List<Book> books = shelf.getBooks();
-            if (books.isEmpty()) {
+            Book[] books = shelf.getBooks();
+            int bookCount = shelf.getBookCount();
+            if (bookCount == 0) {
                 System.out.println("  * This shelf is currently empty.");
             } else {
-                for (int i = 0; i < books.size(); i++) {
-                    Book b = books.get(i);
+                for (int i = 0; i < bookCount; i++) {
+                    Book b = books[i];
                     System.out.println("  [" + (i + 1) + "] Title:       " + b.getTitle());
                     System.out.println("      Description: " + b.getDescription());
                     System.out.println();
@@ -203,26 +206,25 @@ public class Main {
 
     private static void viewBookFullMetadata() {
         System.out.println("\n--- CHOOSE A BOOK TO VIEW FULL METADATA ---");
-        List<Shelf> shelves = system.getShelves();
-        if (shelves.isEmpty()) {
+        Shelf[] shelves = system.getShelves();
+        if (shelves.length == 0) {
             System.out.println("[Info] No shelves exist to select from.");
             return;
         }
 
         System.out.println("Available Shelves:");
-        for (int i = 0; i < shelves.size(); i++) {
-            Shelf s = shelves.get(i);
+        for (int i = 0; i < shelves.length; i++) {
+            Shelf s = shelves[i];
             System.out.println("  " + (i + 1) + ". Shelf " + s.getShelfId() + " [" + s.getCategory() + "]");
         }
 
-        System.out.print("\nSelect a Shelf by number (1-" + shelves.size() + ") or enter Shelf ID: ");
-        String shelfInput = scanner.nextLine().trim();
+        String shelfInput = prompt("\nSelect a Shelf by number (1-" + shelves.length + ") or enter Shelf ID: ");
 
         Shelf selectedShelf = null;
         try {
             int shelfIdx = Integer.parseInt(shelfInput) - 1;
-            if (shelfIdx >= 0 && shelfIdx < shelves.size()) {
-                selectedShelf = shelves.get(shelfIdx);
+            if (shelfIdx >= 0 && shelfIdx < shelves.length) {
+                selectedShelf = shelves[shelfIdx];
             }
         } catch (NumberFormatException ignored) {}
 
@@ -235,25 +237,25 @@ public class Main {
             return;
         }
 
-        List<Book> books = selectedShelf.getBooks();
-        if (books.isEmpty()) {
+        Book[] books = selectedShelf.getBooks();
+        int bookCount = selectedShelf.getBookCount();
+        if (bookCount == 0) {
             System.out.println("[Info] Shelf '" + selectedShelf.getShelfId() + "' is empty!");
             return;
         }
 
         System.out.println("\nBooks on Shelf " + selectedShelf.getShelfId() + ":");
-        for (int i = 0; i < books.size(); i++) {
-            System.out.println("  " + (i + 1) + ". " + books.get(i).getTitle());
+        for (int i = 0; i < bookCount; i++) {
+            System.out.println("  " + (i + 1) + ". " + books[i].getTitle());
         }
 
-        System.out.print("\nSelect a book number (1-" + books.size() + ") to view full metadata: ");
-        String bookInput = scanner.nextLine().trim();
+        String bookInput = prompt("\nSelect a book number (1-" + bookCount + ") to view full metadata: ");
 
         Book selectedBook = null;
         try {
             int bookIdx = Integer.parseInt(bookInput) - 1;
-            if (bookIdx >= 0 && bookIdx < books.size()) {
-                selectedBook = books.get(bookIdx);
+            if (bookIdx >= 0 && bookIdx < bookCount) {
+                selectedBook = books[bookIdx];
             }
         } catch (NumberFormatException ignored) {}
 
@@ -271,8 +273,7 @@ public class Main {
 
     private static void addNewShelf() {
         System.out.println("\n--- ADD A NEW SHELF ---");
-        System.out.print("Enter Shelf ID (e.g. SH-04): ");
-        String shelfId = scanner.nextLine().trim();
+        String shelfId = prompt("Enter Shelf ID (e.g. SH-04): ");
         if (shelfId.isEmpty()) {
             System.out.println("[Error] Shelf ID cannot be empty!");
             return;
@@ -283,16 +284,15 @@ public class Main {
             return;
         }
 
-        System.out.print("Enter Shelf Category/Genre: ");
-        String category = scanner.nextLine().trim();
+        String category = prompt("Enter Shelf Category/Genre: ");
         if (category.isEmpty()) {
             category = "General";
         }
 
-        System.out.print("Enter Shelf Capacity (integer): ");
+        String capacityStr = prompt("Enter Shelf Capacity (integer): ");
         int capacity;
         try {
-            capacity = Integer.parseInt(scanner.nextLine().trim());
+            capacity = Integer.parseInt(capacityStr);
             if (capacity <= 0) {
                 System.out.println("[Error] Capacity must be greater than 0!");
                 return;
@@ -312,8 +312,8 @@ public class Main {
 
     private static void addBookToShelf() {
         System.out.println("\n--- ADD A BOOK TO A SHELF ---");
-        List<Shelf> shelves = system.getShelves();
-        if (shelves.isEmpty()) {
+        Shelf[] shelves = system.getShelves();
+        if (shelves.length == 0) {
             System.out.println("[Error] No shelves exist! Create a shelf first.");
             return;
         }
@@ -323,8 +323,7 @@ public class Main {
             System.out.println("  - " + s.getShelfId() + " (" + s.getCategory() + ") Capacity: " + s.getBookCount() + "/" + s.getCapacity());
         }
 
-        System.out.print("\nEnter Shelf ID to add book to: ");
-        String shelfId = scanner.nextLine().trim();
+        String shelfId = prompt("\nEnter Shelf ID to add book to: ");
         Shelf shelf = system.findShelfById(shelfId);
 
         if (shelf == null) {
@@ -337,41 +336,35 @@ public class Main {
             return;
         }
 
-        System.out.print("Enter Book Title: ");
-        String title = scanner.nextLine().trim();
+        String title = prompt("Enter Book Title: ");
         if (title.isEmpty()) {
             System.out.println("[Error] Title cannot be empty!");
             return;
         }
 
-        System.out.print("Enter Book Description (Synopsis): ");
-        String description = scanner.nextLine().trim();
+        String description = prompt("Enter Book Description (Synopsis): ");
         if (description.isEmpty()) {
             description = "No description provided.";
         }
 
-        System.out.print("Enter Author: ");
-        String author = scanner.nextLine().trim();
+        String author = prompt("Enter Author: ");
         if (author.isEmpty()) {
             author = "Unknown";
         }
 
-        System.out.print("Enter ISBN: ");
-        String isbn = scanner.nextLine().trim();
+        String isbn = prompt("Enter ISBN: ");
         if (isbn.isEmpty()) {
             isbn = "N/A";
         }
 
-        System.out.print("Enter Publisher: ");
-        String publisher = scanner.nextLine().trim();
+        String publisher = prompt("Enter Publisher: ");
         if (publisher.isEmpty()) {
             publisher = "Unknown";
         }
 
-        System.out.print("Enter Publish Year (integer): ");
         int publishYear = 2026;
         try {
-            String pyStr = scanner.nextLine().trim();
+            String pyStr = prompt("Enter Publish Year (integer): ");
             if (!pyStr.isEmpty()) {
                 publishYear = Integer.parseInt(pyStr);
             }
@@ -379,16 +372,14 @@ public class Main {
             System.out.println("[Warning] Invalid year. Defaulting to 2026.");
         }
 
-        System.out.print("Enter Genre: ");
-        String genre = scanner.nextLine().trim();
+        String genre = prompt("Enter Genre: ");
         if (genre.isEmpty()) {
             genre = shelf.getCategory();
         }
 
-        System.out.print("Enter Page Count (integer): ");
         int pages = 100;
         try {
-            String pgStr = scanner.nextLine().trim();
+            String pgStr = prompt("Enter Page Count (integer): ");
             if (!pgStr.isEmpty()) {
                 pages = Integer.parseInt(pgStr);
             }
@@ -396,8 +387,7 @@ public class Main {
             System.out.println("[Warning] Invalid page count. Defaulting to 100.");
         }
 
-        System.out.print("Enter Language: ");
-        String language = scanner.nextLine().trim();
+        String language = prompt("Enter Language: ");
         if (language.isEmpty()) {
             language = "English";
         }
@@ -414,8 +404,7 @@ public class Main {
         System.out.println("\n--- REMOVE A BOOK FROM A SHELF ---");
         displayShelvesWithTitlesAndDescriptions();
 
-        System.out.print("Enter Shelf ID: ");
-        String shelfId = scanner.nextLine().trim();
+        String shelfId = prompt("Enter Shelf ID: ");
         Shelf shelf = system.findShelfById(shelfId);
 
         if (shelf == null) {
@@ -423,8 +412,7 @@ public class Main {
             return;
         }
 
-        System.out.print("Enter Book Title or ISBN to remove: ");
-        String query = scanner.nextLine().trim();
+        String query = prompt("Enter Book Title or ISBN to remove: ");
 
         Book removedBook = system.removeBookFromShelf(shelfId, query);
         if (removedBook != null) {
@@ -438,16 +426,14 @@ public class Main {
         System.out.println("\n--- TRANSFER A BOOK BETWEEN SHELVES ---");
         displayShelvesWithTitlesAndDescriptions();
 
-        System.out.print("Enter Source (From) Shelf ID: ");
-        String fromShelfId = scanner.nextLine().trim();
+        String fromShelfId = prompt("Enter Source (From) Shelf ID: ");
         Shelf fromShelf = system.findShelfById(fromShelfId);
         if (fromShelf == null) {
             System.out.println("[Error] Source shelf '" + fromShelfId + "' not found!");
             return;
         }
 
-        System.out.print("Enter Destination (To) Shelf ID: ");
-        String toShelfId = scanner.nextLine().trim();
+        String toShelfId = prompt("Enter Destination (To) Shelf ID: ");
         Shelf toShelf = system.findShelfById(toShelfId);
         if (toShelf == null) {
             System.out.println("[Error] Destination shelf '" + toShelfId + "' not found!");
@@ -459,8 +445,7 @@ public class Main {
             return;
         }
 
-        System.out.print("Enter Book Title or ISBN to transfer: ");
-        String query = scanner.nextLine().trim();
+        String query = prompt("Enter Book Title or ISBN to transfer: ");
 
         if (system.transferBook(fromShelfId, toShelfId, query)) {
             System.out.println("[Success] Book '" + query + "' successfully transferred to '" + toShelfId + "'!");
